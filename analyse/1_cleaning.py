@@ -3,92 +3,84 @@ import os
 import sqlite3
 import numpy as np
 
-# Get the absolute path to the cars.db file located in the parent directory
-db_path = os.path.abspath("../cars.db")
-
 # Connect to the existing cars.db file
-connection = sqlite3.connect(db_path)
+connection = sqlite3.connect("cars.db")
 
 df = pd.read_sql_query("SELECT * FROM Cars",connection)
 
 
-# Missing values
-df = df.drop(["timestamp_field_7"],axis=1)
+# Separate column "CarName" into two distinct columns: "marque" and "modèle"
+df[['marque', 'modèle']] = df['CarName'].str.split(' ', n=1, expand=True)
 
-if df.shape[1]!= 7:
+# Drop the 'CarName' column
+df.drop('CarName', axis=1, inplace=True)
+
+# df.to_csv('prix_voiture.csv', index=False)
+
+# Nettoyer et modifier les données pour qu'il soit conforme aux normes françaises:
+# Modify the values of the "fueltype" column
+df["fueltype"] = df["fueltype"].replace({"gas": "essence", "diesel": "diesel"})
+
+# Modify the values of the "aspiration" column
+df["aspiration"] = df["aspiration"].replace({"std": "atmosphérique", "turbo": "turbo"})
+
+# Modify the values of the "doornumber" column
+df["doornumber"] = df["doornumber"].replace({"two": "deux", "four": "quatre"})
+
+# Modify the values of the "carbody" column
+df["carbody"] = df["carbody"].replace({"hatchback": "berline compacte", "sedan": "berline", "wagon": "break"})
+
+# Modify the values of the "drivewheel" column
+df["drivewheel"] = df["drivewheel"].replace({"rwd": "propulsion", "fwd": "traction", "4wd": "quatre roues motrices"})
+
+# Modify the values of the "enginelocation" column
+df["enginelocation"] = df["enginelocation"].replace({"front": "avant", "rear": "arrière"})
+
+# Rename the columns "carlength", "carwidth", and "carheight"
+df = df.rename(columns={"carlength": "longueur", "carwidth": "largeur", "carheight": "hauteur"})
+#######################################################
+
+df = df.rename(columns={'car_ID': 'identifiant', 'symboling': 'etat_de_route', 'fueltype': 'carburant', 'aspiration': 'turbo', 'doornumber': 'nombre_portes', 'carbody': 'type_vehicule', 'drivewheel': 'roues_motrices', 'enginelocation': 'emplacement_moteur', 'wheelbase': 'empattement', 'carlength': 'longueur_voiture', 'carwidth': 'largeur_voiture', 'carheight': 'hauteur_voiture', 'curbweight': 'poids_vehicule', 'enginetype': 'type_moteur', 'cylindernumber': 'nombre_cylindres', 'enginesize': 'taille_moteur', 'fuelsystem': 'systeme_carburant', 'boreratio': 'taux_alésage', 'stroke': 'course', 'compressionratio': 'taux_compression', 'horsepower': 'chevaux', 'peakrpm': 'tour_moteur', 'citympg': 'consommation_ville', 'highwaympg': 'consommation_autoroute', 'price': 'prix'})
+
+df.to_csv('prix_voiture.csv', index=False)
+
+# Delete column car_id
+df = df.drop('identifiant', axis=1)
+
+# Missing values #
+# There are two missing values in column "modèle". Delete these two rows.
+df = df.dropna()
+
+
+if df.shape[1]!= 26:
     raise ValueError("Le nombre de colonnes ne correspond pas")
 else:
     print("Valeurs manquantes: OK")
 
-# Gestion des doublons
-df = df.drop_duplicates(['order_id','review_score','review_comment_title','review_comment_message','review_creation_date'])
+# Select numerical columns
+numeric_cols = df.select_dtypes(include=['int', 'float']).columns
+
+# Convert american units into french units
+df['empattement'] = (df['empattement'] * 0.0254).round(2)
+df['longueur'] = df['longueur'] * 0.0254
+df['largeur'] = df['largeur'] * 0.0254
+df['hauteur'] = df['hauteur'] * 0.0254
+df['poids_vehicule'] = df['poids_vehicule'] * 0.453592
+df['taille_moteur'] = df['taille_moteur'] * 0.0163871
+df['taux_alésage'] = df['taux_alésage'] * 25.4
+df['course'] = df['course'] * 25.4
+df['consommation_ville'] = 235.214 / df['consommation_ville']
+df['consommation_autoroute'] = 235.214 / df['consommation_autoroute']
+
+df.to_csv('prix_voiture.csv', index=False)
 
 
-# Changement des types
-df.review_creation_date = pd.to_datetime(df['review_creation_date'], format= '%Y-%m-%d %H:%M:%S', errors="coerce")
-df.review_answer_timestamp = pd.to_datetime(df['review_answer_timestamp'], format= '%Y-%m-%d %H:%M:%S', errors="coerce")
+# Duplicates :None
 
-from numpy import dtype
+# Unify names. Correction of writing mistakes
+df["marque"] = df["marque"].replace({"porcshce": "porsche", "toyouta": "toyota", "vokswagen": "volkswagen", "maxda": "mazda", "Nissan": "nissan"})
+df["modèle"] = df["modèle"].replace({"100 ls": "100ls"})
 
-
-if df.dtypes['review_creation_date'] != dtype('<M8[ns]') or df.dtypes['review_answer_timestamp'] != dtype('<M8[ns]'):
-    raise ValueError("Les dates ne sont pas au bon format")
-else:
-    print("Gestion des dates: OK")
-
-#Changement des valeurs types pour les dates
-df = df.dropna(subset=['review_creation_date','review_answer_timestamp'])
-
-# Jointure avec la Table Orders
-df_orders = pd.read_sql_query("SELECT * FROM Orders",connection)
-df = df.merge(df_orders, how='left', on ='order_id')
-
-
-# Gestion des types de data
-df.order_purchase_timestamp = pd.to_datetime(df['order_purchase_timestamp'], 
-                                            format= '%Y-%m-%d %H:%M:%S', 
-                                            errors="coerce")
-
-df.order_delivered_customer_date = pd.to_datetime(df['order_delivered_customer_date'], 
-                                                  format= '%Y-%m-%d %H:%M:%S', 
-                                                  errors="coerce")
-
-df.order_estimated_delivery_date = pd.to_datetime(df['order_estimated_delivery_date'], 
-                                                  format= '%Y-%m-%d %H:%M:%S', 
-                                                  errors="coerce")
-
-
-if df.dtypes['order_estimated_delivery_date'] != dtype('<M8[ns]') \
-    or df.dtypes['order_delivered_customer_date'] != dtype('<M8[ns]')\
-    or df.dtypes['order_estimated_delivery_date'] != dtype('<M8[ns]')    :
-    raise ValueError("Les dates ne sont pas au bon format")
-else:
-    print("Gestion des dates (Orders): OK")
-
-# Création des variables montant price et freight value
-
-df_order_item = pd.read_sql_query("SELECT * FROM OrderItem",connection)
-
-df_montant_global = df_order_item[["order_id","price","freight_value"]].groupby("order_id").sum()
-
-df = df.merge(df_montant_global, how='left', on ='order_id')
-
-print("Création de total_price et total_freight_value")
-
-# Récupération des variables description, photo
-
-df_products = pd.read_sql_query("SELECT * FROM Products",connection)
-
-df_item_product = df_order_item[['order_id','product_id']].merge(df_products, how='left', on ='product_id')
-df_item_product["product_photos_qty"] = df_item_product["product_photos_qty"].replace("","0").astype("int")
-df_item_product["product_description_lenght"] = df_item_product["product_description_lenght"].replace("","0").astype("int")
-
-df_item_product_group_by = df_item_product[['order_id','product_photos_qty','product_description_lenght']].groupby('order_id').mean()
-
-
-df_item_product_group_by = df_item_product_group_by.reset_index()
-
-df = df.merge(df_item_product_group_by,how='left')
 
 #Création de la table CleanDataset
 
