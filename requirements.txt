@@ -31,3 +31,5 @@ wcwidth==0.2.13
 pandas
 matplotlib
 seaborn
+scikit-learn
+mlflow
