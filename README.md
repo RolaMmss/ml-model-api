@@ -50,3 +50,7 @@ Your client, a car dealer, wants an application that can estimate the price of a
     tour_moteur : en tours par minute (pas de conversion nécessaire)
     consommation_ville : en litres aux 100 km (1 mile par gallon = 0,425 km par litre)
     consommation_autoroute : en litres aux 100 km
+
+
+# Folder model:
+This folder contains different files to form a pipeline for training a machine learning model with some predefined settings and logging the results with MLflow. The train.sh script orchestrates the execution of this pipeline.
