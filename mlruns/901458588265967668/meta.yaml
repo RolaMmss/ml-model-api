@@ -1,0 +1,6 @@
+artifact_location: file:///home/utilisateur/Bureau/ml-model-api-rola/mlruns/901458588265967668
+creation_time: 1714127154402
+experiment_id: '901458588265967668'
+last_update_time: 1714127154402
+lifecycle_stage: active
+name: predict_price

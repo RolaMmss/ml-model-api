@@ -1,0 +1,15 @@
+artifact_uri: file:///home/utilisateur/Bureau/ml-model-api-rola/mlruns/901458588265967668/fab97fb918434d3eb9f158cb77d2ad4f/artifacts
+end_time: 1714127155095
+entry_point_name: ''
+experiment_id: '901458588265967668'
+lifecycle_stage: active
+run_id: fab97fb918434d3eb9f158cb77d2ad4f
+run_name: first_run_2017
+run_uuid: fab97fb918434d3eb9f158cb77d2ad4f
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1714127154676
+status: 4
+tags: []
+user_id: utilisateur

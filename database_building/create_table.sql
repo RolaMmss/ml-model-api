@@ -30,5 +30,5 @@ CREATE TABLE IF NOT EXISTS Cars (
     peakrpm INTEGER,
     citympg INTEGER,
     highwaympg INTEGER,
-    price INTEGER
+    price REAL
 );

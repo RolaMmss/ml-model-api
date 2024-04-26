@@ -33,3 +33,7 @@ matplotlib
 seaborn
 scikit-learn
 mlflow
+fastapi 
+uvicorn
+python-dotenv
+python-jose 
